@@ -30,9 +30,11 @@ var (
 	containerIDKey   = newKey("container_id")
 
 	cpuTypeKey = newKey("cpu_type")
+	memTypeKey = newKey("mem_type")
 
 	cpuLoadAverageView = newView("cpu_load_average", "Smoothed average of number of runnable threads x 1000.", stats.MeanAggregation{}, stats.Cumulative{})
 	cpuUsageView       = newView("cpu_usage_total", "Total CPU usage in nanoseconds", stats.CountAggregation{}, stats.Cumulative{}, cpuTypeKey)
+	memView            = newView("mem_view", "Memeory stats", stats.CountAggregation{}, stats.Cumulative{}, memTypeKey)
 )
 
 func init() {
@@ -59,7 +61,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 		{Key: containerIDKey, Value: ref.Id},
 	}
 
-	// TODO(jbd): Handle dynamic tags.
+	// TODO(jbd): Handle dynamic labels.
 
 	o.e.Export(&stats.ViewData{
 		View:  cpuLoadAverageView,
@@ -119,6 +121,52 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 			}},
 		})
 	}
+
+	memUsage := stats.CountData(int64(s.Memory.Usage))
+	o.e.Export(&stats.ViewData{
+		View:  memView,
+		Start: s.Timestamp,
+		End:   now,
+		Rows: []*stats.Row{{
+			Tags: append(tags, tag.Tag{Key: memTypeKey, Value: "usage"}),
+			Data: &memUsage,
+		}},
+	})
+
+	maxMemUsage := stats.CountData(int64(s.Memory.MaxUsage))
+	o.e.Export(&stats.ViewData{
+		View:  memView,
+		Start: s.Timestamp,
+		End:   now,
+		Rows: []*stats.Row{{
+			Tags: append(tags, tag.Tag{Key: memTypeKey, Value: "max_usage"}),
+			Data: &maxMemUsage,
+		}},
+	})
+
+	cacheMemUsage := stats.CountData(int64(s.Memory.Cache))
+	o.e.Export(&stats.ViewData{
+		View:  memView,
+		Start: s.Timestamp,
+		End:   now,
+		Rows: []*stats.Row{{
+			Tags: append(tags, tag.Tag{Key: memTypeKey, Value: "cache"}),
+			Data: &cacheMemUsage,
+		}},
+	})
+
+	swapMemUsage := stats.CountData(int64(s.Memory.Swap))
+	o.e.Export(&stats.ViewData{
+		View:  memView,
+		Start: s.Timestamp,
+		End:   now,
+		Rows: []*stats.Row{{
+			Tags: append(tags, tag.Tag{Key: memTypeKey, Value: "swap"}),
+			Data: &swapMemUsage,
+		}},
+	})
+
+	// Add RSS, working set.
 	return nil
 }
 

@@ -19,6 +19,8 @@ import (
 	"sort"
 
 	info "github.com/google/cadvisor/info/v1"
+
+	_ "github.com/google/cadvisor/storage/opencensus"
 )
 
 type StorageDriver interface {

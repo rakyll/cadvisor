@@ -23,6 +23,8 @@ import (
 	"github.com/google/cadvisor/storage"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+
+	"go.opencensus.io/exporter/stats/stackdriver"
 )
 
 var (
@@ -43,16 +45,30 @@ func init() {
 
 func newStorage() (storage.StorageDriver, error) {
 	// TODO(jbd): Read from configuration file.
-	return &opencensus{}, nil
+	e, err := stackdriver.NewExporter(stackdriver.Options{
+		ProjectID: "jbdtalks",
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &opencensus{
+		exporters: []stats.Exporter{e},
+	}, nil
 }
 
 type opencensus struct {
-	e stats.Exporter
+	exporters []stats.Exporter
+}
+
+func (o *opencensus) export(vd *stats.ViewData) {
+	for _, e := range o.exporters {
+		e.Export(vd)
+	}
 }
 
 func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStats) error {
 	vd := &stats.ViewData{}
-	o.e.Export(vd)
+	o.export(vd)
 
 	now := time.Now()
 
@@ -63,7 +79,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 
 	// TODO(jbd): Handle dynamic labels.
 
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  cpuLoadAverageView,
 		Start: s.Timestamp,
 		End:   now,
@@ -77,7 +93,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	})
 
 	total := stats.CountData(int64(s.Cpu.Usage.Total))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  cpuUsageView,
 		Start: s.Timestamp,
 		End:   now,
@@ -88,7 +104,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	})
 
 	sys := stats.CountData(int64(s.Cpu.Usage.System))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  cpuUsageView,
 		Start: s.Timestamp,
 		End:   now,
@@ -99,7 +115,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	})
 
 	user := stats.CountData(int64(s.Cpu.Usage.User))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  cpuUsageView,
 		Start: s.Timestamp,
 		End:   now,
@@ -111,7 +127,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 
 	for i, c := range s.Cpu.Usage.PerCpu {
 		data := stats.CountData(int64(c))
-		o.e.Export(&stats.ViewData{
+		o.export(&stats.ViewData{
 			View:  cpuUsageView,
 			Start: s.Timestamp,
 			End:   now,
@@ -123,7 +139,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	}
 
 	memUsage := stats.CountData(int64(s.Memory.Usage))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  memView,
 		Start: s.Timestamp,
 		End:   now,
@@ -134,7 +150,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	})
 
 	maxMemUsage := stats.CountData(int64(s.Memory.MaxUsage))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  memView,
 		Start: s.Timestamp,
 		End:   now,
@@ -145,7 +161,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	})
 
 	cacheMemUsage := stats.CountData(int64(s.Memory.Cache))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  memView,
 		Start: s.Timestamp,
 		End:   now,
@@ -156,7 +172,7 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	})
 
 	swapMemUsage := stats.CountData(int64(s.Memory.Swap))
-	o.e.Export(&stats.ViewData{
+	o.export(&stats.ViewData{
 		View:  memView,
 		Start: s.Timestamp,
 		End:   now,

@@ -61,6 +61,7 @@ type opencensus struct {
 }
 
 func (o *opencensus) export(vd *stats.ViewData) {
+	fmt.Println(vd)
 	for _, e := range o.exporters {
 		e.Export(vd)
 	}

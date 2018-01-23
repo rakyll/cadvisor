@@ -19,8 +19,6 @@ import (
 	"sort"
 
 	info "github.com/google/cadvisor/info/v1"
-
-	_ "github.com/google/cadvisor/storage/opencensus"
 )
 
 type StorageDriver interface {
@@ -37,6 +35,7 @@ type StorageDriverFunc func() (StorageDriver, error)
 var registeredPlugins = map[string](StorageDriverFunc){}
 
 func RegisterStorageDriver(name string, f StorageDriverFunc) {
+	fmt.Println("registering", name)
 	registeredPlugins[name] = f
 }
 

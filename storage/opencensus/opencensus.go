@@ -67,9 +67,7 @@ func (o *opencensus) export(vd *stats.ViewData) {
 }
 
 func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStats) error {
-	vd := &stats.ViewData{}
-	o.export(vd)
-
+	log.Println("exporting...")
 	now := time.Now()
 
 	tags := []tag.Tag{

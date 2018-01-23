@@ -35,12 +35,10 @@ type StorageDriverFunc func() (StorageDriver, error)
 var registeredPlugins = map[string](StorageDriverFunc){}
 
 func RegisterStorageDriver(name string, f StorageDriverFunc) {
-	fmt.Println("registering", name)
 	registeredPlugins[name] = f
 }
 
 func New(name string) (StorageDriver, error) {
-	fmt.Println(registeredPlugins)
 	if name == "" {
 		return nil, nil
 	}

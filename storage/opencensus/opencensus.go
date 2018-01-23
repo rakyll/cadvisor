@@ -29,8 +29,8 @@ var (
 	containerNameKey = newKey("container_name")
 	containerIDKey   = newKey("container_id")
 
-	cpuTypeKey = newKey("cpu_type")
-	memTypeKey = newKey("mem_type")
+	cpuTypeKey = newKey("cpu_stats_type")
+	memTypeKey = newKey("mem_stats_type")
 
 	cpuLoadAverageView = newView("cpu_load_average", "Smoothed average of number of runnable threads x 1000.", stats.MeanAggregation{}, stats.Cumulative{})
 	cpuUsageView       = newView("cpu_usage_total", "Total CPU usage in nanoseconds", stats.CountAggregation{}, stats.Cumulative{}, cpuTypeKey)

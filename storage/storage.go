@@ -19,7 +19,6 @@ import (
 	"sort"
 
 	info "github.com/google/cadvisor/info/v1"
-	_ "github.com/google/cadvisor/storage/opencensus" // By default, enable OpenCensus.
 )
 
 type StorageDriver interface {

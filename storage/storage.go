@@ -39,6 +39,7 @@ func RegisterStorageDriver(name string, f StorageDriverFunc) {
 }
 
 func New(name string) (StorageDriver, error) {
+	fmt.Println(registeredPlugins)
 	if name == "" {
 		return nil, nil
 	}

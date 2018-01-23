@@ -15,6 +15,7 @@
 package opencensus
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -28,6 +29,8 @@ import (
 )
 
 var (
+	config = flag.String("storage_driver_opencensus_config", "", "opencensus config file")
+
 	containerNameKey = newKey("container_name")
 	containerIDKey   = newKey("container_id")
 
@@ -77,7 +80,6 @@ func (o *opencensus) AddStats(ref info.ContainerReference, s *info.ContainerStat
 	}
 
 	// TODO(jbd): Handle dynamic labels.
-
 	o.export(&stats.ViewData{
 		View:  cpuLoadAverageView,
 		Start: s.Timestamp,
